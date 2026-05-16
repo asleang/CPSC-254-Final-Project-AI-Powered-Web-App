@@ -1,0 +1,152 @@
+[
+  {
+    "id": "TC01",
+    "description": "High-coverage pantry — expect most ingredients to appear in meals",
+    "input": {
+      "ingredients": "chicken breasts, garlic, onions, canned tomatoes, olive oil, pasta, bell peppers, chicken broth, parmesan, dried oregano",
+      "dietary": "",
+      "servings": "4"
+    },
+    "pass_criteria": {
+      "metric": "ingredient_utilization_rate",
+      "threshold": 0.7,
+      "notes": "At least 7 of 10 ingredients must appear in ingredients_used across the week"
+    },
+    "expected": "PASS"
+  },
+  {
+    "id": "TC02",
+    "description": "Strict vegan diet — no animal products allowed in any meal",
+    "input": {
+      "ingredients": "eggs, butter, flour, milk, canned chickpeas, spinach, garlic, olive oil, rice, lemon",
+      "dietary": "vegan",
+      "servings": "2"
+    },
+    "pass_criteria": {
+      "metric": "dietary_compliance",
+      "threshold": 1.0,
+      "notes": "Zero meals may contain eggs, butter, milk, or any animal product in ingredients_used"
+    },
+    "expected": "PASS"
+  },
+  {
+    "id": "TC03",
+    "description": "Gluten-free restriction — no wheat, flour, or pasta in any meal",
+    "input": {
+      "ingredients": "salmon, rice, broccoli, soy sauce, sesame oil, garlic, ginger, carrots, eggs",
+      "dietary": "gluten-free",
+      "servings": "2"
+    },
+    "pass_criteria": {
+      "metric": "dietary_compliance",
+      "threshold": 1.0,
+      "notes": "No meal may list flour, pasta, bread, wheat, or soy sauce (contains gluten) in ingredients_used"
+    },
+    "expected": "PASS"
+  },
+  {
+    "id": "TC04",
+    "description": "Minimal pantry — only 3 items, grocery_gaps should be non-empty",
+    "input": {
+      "ingredients": "eggs, salt, olive oil",
+      "dietary": "",
+      "servings": "1"
+    },
+    "pass_criteria": {
+      "metric": "grocery_gaps_nonempty",
+      "threshold": 1,
+      "notes": "grocery_gaps must contain at least 3 items since pantry is too sparse for 7 varied dinners"
+    },
+    "expected": "PASS"
+  },
+  {
+    "id": "TC05",
+    "description": "Schema completeness — all 7 days must have all 6 required fields",
+    "input": {
+      "ingredients": "ground beef, onions, garlic, canned beans, cumin, rice, tortillas, cheese, sour cream",
+      "dietary": "",
+      "servings": "4"
+    },
+    "pass_criteria": {
+      "metric": "schema_completeness",
+      "threshold": 1.0,
+      "notes": "Every day object must contain: day, meal, description, ingredients_used, missing_ingredients, prep_time, difficulty"
+    },
+    "expected": "PASS"
+  },
+  {
+    "id": "TC06",
+    "description": "Difficulty values must be one of Easy / Medium / Advanced",
+    "input": {
+      "ingredients": "pasta, canned tuna, olive oil, capers, lemon, garlic, parsley, black pepper",
+      "dietary": "",
+      "servings": "2"
+    },
+    "pass_criteria": {
+      "metric": "valid_difficulty_values",
+      "threshold": 1.0,
+      "notes": "All 7 difficulty fields must be exactly 'Easy', 'Medium', or 'Advanced'"
+    },
+    "expected": "PASS"
+  },
+  {
+    "id": "TC07",
+    "description": "Exact 7 days returned — no more, no less",
+    "input": {
+      "ingredients": "tofu, soy sauce, sesame oil, bok choy, noodles, garlic, ginger, rice vinegar",
+      "dietary": "vegetarian",
+      "servings": "2"
+    },
+    "pass_criteria": {
+      "metric": "day_count",
+      "threshold": 7,
+      "notes": "len(plan['week']) must equal exactly 7"
+    },
+    "expected": "PASS"
+  },
+  {
+    "id": "TC08",
+    "description": "grocery_gaps must be the union of all missing_ingredients (deduped)",
+    "input": {
+      "ingredients": "lentils, onions, garlic, cumin, olive oil, spinach, canned tomatoes",
+      "dietary": "",
+      "servings": "4"
+    },
+    "pass_criteria": {
+      "metric": "grocery_gaps_is_union",
+      "threshold": 1.0,
+      "notes": "Every item in any day's missing_ingredients must appear in grocery_gaps; grocery_gaps must not contain items absent from all missing_ingredients lists"
+    },
+    "expected": "PASS"
+  },
+  {
+    "id": "TC09",
+    "description": "Empty ingredients input — must return 400 error, not a plan",
+    "input": {
+      "ingredients": "",
+      "dietary": "",
+      "servings": "4"
+    },
+    "pass_criteria": {
+      "metric": "error_on_empty_input",
+      "threshold": 1,
+      "notes": "API must return HTTP 400 and a JSON body with an 'error' key"
+    },
+    "expected": "PASS"
+  },
+  {
+    "id": "TC10",
+    "description": "Nut allergy — no nuts or nut products in any meal",
+    "input": {
+      "ingredients": "chicken, rice, broccoli, soy sauce, garlic, ginger, sesame oil, peanut butter, carrots",
+      "dietary": "nut-free, peanut allergy",
+      "servings": "3"
+    },
+    "pass_criteria": {
+      "metric": "dietary_compliance",
+      "threshold": 1.0,
+      "notes": "No meal may list peanut butter, peanuts, almonds, cashews, or any nut product in ingredients_used, even though peanut butter is in the pantry"
+    },
+    "expected": "PASS"
+  }
+]

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pantry Meal Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #FAF6EF;
+      --warm-white: #FFFDF8;
+      --sage: #6B8F71;
+      --sage-dark: #445C48;
+      --sage-light: #D4E6D6;
+      --terracotta: #C4714A;
+      --terracotta-light: #F5E4DA;
+      --brown: #5C3D2E;
+      --tan: #D4B896;
+      --tan-light: #F0E8DC;
+      --text: #2D2416;
+      --text-muted: #7A6855;
+      --border: #E2D5C3;
+      --radius: 14px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Grain overlay ─────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Layout ────────────────────────────────────── */
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── Header ────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .header-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 64px; height: 64px;
+      background: var(--sage-light);
+      border-radius: 50%;
+      font-size: 28px;
+      margin-bottom: 18px;
+    }
+    header h1 {
+      font-family: 'Lora', serif;
+      font-size: 2.6rem;
+      font-weight: 600;
+      color: var(--brown);
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+    header h1 em {
+      font-style: italic;
+      color: var(--sage-dark);
+    }
+    header p {
+      margin-top: 12px;
+      font-size: 1rem;
+      color: var(--text-muted);
+      font-weight: 300;
+      max-width: 420px;
+      margin-inline: auto;
+      line-height: 1.6;
+    }
+
+    /* ── Card ──────────────────────────────────────── */
+    .card {
+      background: var(--warm-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Form ──────────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 580px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-full { grid-column: 1 / -1; }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+    textarea, input, select {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      resize: vertical;
+    }
+    textarea:focus, input:focus, select:focus {
+      border-color: var(--sage);
+      box-shadow: 0 0 0 3px rgba(107,143,113,0.15);
+    }
+    textarea { min-height: 110px; line-height: 1.55; }
+    .hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* ── Button ────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 13px 32px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.2s, box-shadow 0.2s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--sage-dark);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(68,92,72,0.25);
+    }
+    .btn-primary:hover { opacity: 0.9; box-shadow: 0 4px 18px rgba(68,92,72,0.3); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-wrapper { margin-top: 24px; text-align: center; }
+
+    /* ── Loading ───────────────────────────────────── */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 48px 0;
+    }
+    .loading.active { display: block; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--sage);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* ── Results ───────────────────────────────────── */
+    #results { display: none; }
+    #results.active { display: block; }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .results-header h2 {
+      font-family: 'Lora', serif;
+      font-size: 1.5rem;
+      color: var(--brown);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 18px;
+      font-size: 0.82rem;
+    }
+    .btn-outline:hover { border-color: var(--sage); color: var(--sage-dark); }
+
+    /* ── Day cards ─────────────────────────────────── */
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .day-card {
+      background: var(--warm-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .day-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
+    .day-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--terracotta);
+      margin-bottom: 6px;
+    }
+    .day-meal {
+      font-family: 'Lora', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--brown);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+    .day-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    .day-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 3px 9px;
+      border-radius: 50px;
+    }
+    .badge-time { background: var(--tan-light); color: var(--brown); }
+    .badge-easy { background: var(--sage-light); color: var(--sage-dark); }
+    .badge-medium { background: #FEF3C7; color: #92400E; }
+    .badge-advanced { background: var(--terracotta-light); color: var(--terracotta); }
+
+    .day-missing {
+      margin-top: 10px;
+      font-size: 0.76rem;
+      color: var(--terracotta);
+    }
+    .day-missing span { font-weight: 500; }
+
+    /* ── Feedback ──────────────────────────────────── */
+    .feedback-toggle {
+      margin-top: 12px;
+      background: none;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      width: 100%;
+      padding: 7px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .feedback-toggle:hover { border-color: var(--sage); color: var(--sage-dark); }
+    .feedback-box { display: none; margin-top: 10px; }
+    .feedback-box.open { display: block; }
+    .feedback-box textarea {
+      min-height: 64px;
+      font-size: 0.82rem;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+    }
+    .btn-refine {
+      width: 100%;
+      background: var(--terracotta);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 0.82rem;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-refine:hover { opacity: 0.88; }
+    .btn-refine:disabled { opacity: 0.5; cursor: not-allowed; }
+    .day-card.refining { opacity: 0.55; pointer-events: none; }
+    .day-card.revised { border-color: var(--sage); background: #F3FAF4; }
+
+    /* ── Grocery section ───────────────────────────── */
+    .grocery-card {
+      background: var(--terracotta-light);
+      border: 1px solid #E8C4B0;
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-bottom: 20px;
+    }
+    .grocery-card h3 {
+      font-family: 'Lora', serif;
+      font-size: 1.1rem;
+      color: var(--brown);
+      margin-bottom: 14px;
+    }
+    .grocery-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .grocery-item {
+      background: #fff;
+      border: 1px solid #E8C4B0;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      padding: 5px 14px;
+      color: var(--brown);
+    }
+    .grocery-empty {
+      font-size: 0.88rem;
+      color: var(--sage-dark);
+      font-style: italic;
+    }
+
+    /* ── Tip ───────────────────────────────────────── */
+    .tip-card {
+      background: var(--sage-light);
+      border: 1px solid #B8D4BA;
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .tip-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+    .tip-card p { font-size: 0.88rem; color: var(--sage-dark); line-height: 1.6; }
+
+    /* ── Error ─────────────────────────────────────── */
+    .error-msg {
+      background: #FEE2E2;
+      border: 1px solid #FCA5A5;
+      border-radius: 10px;
+      padding: 14px 18px;
+      color: #991B1B;
+      font-size: 0.88rem;
+      margin-top: 16px;
+      display: none;
+    }
+    .error-msg.active { display: block; }
+
+    /* ── Animations ────────────────────────────────── */
+    .fade-in { animation: fadeIn 0.4s ease forwards; opacity: 0; }
+    @keyframes fadeIn { to { opacity: 1; } }
+    .slide-up { animation: slideUp 0.4s ease forwards; opacity: 0; transform: translateY(12px); }
+    @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+    .day-card { animation: slideUp 0.35s ease both; }
+    .day-card:nth-child(1) { animation-delay: 0.05s; }
+    .day-card:nth-child(2) { animation-delay: 0.10s; }
+    .day-card:nth-child(3) { animation-delay: 0.15s; }
+    .day-card:nth-child(4) { animation-delay: 0.20s; }
+    .day-card:nth-child(5) { animation-delay: 0.25s; }
+    .day-card:nth-child(6) { animation-delay: 0.30s; }
+    .day-card:nth-child(7) { animation-delay: 0.35s; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="header-icon">🥦</div>
+    <h1>Pantry <em>Meal Planner</em></h1>
+    <p>Tell us what's in your kitchen and we'll build a full week of dinners around it.</p>
+  </header>
+
+  <!-- Input Form -->
+  <div class="card" id="form-card">
+    <div class="form-grid">
+      <div class="form-full">
+        <label for="ingredients">What's in your pantry & fridge?</label>
+        <textarea id="ingredients" placeholder="e.g. chicken breasts, rice, garlic, onions, canned tomatoes, olive oil, bell peppers, eggs, pasta, butter..."></textarea>
+        <p class="hint">Separate items with commas. The more you list, the better the plan!</p>
+      </div>
+      <div>
+        <label for="dietary">Dietary needs / restrictions</label>
+        <input type="text" id="dietary" placeholder="e.g. gluten-free, vegetarian, nut allergy" />
+      </div>
+      <div>
+        <label for="servings">Servings per meal</label>
+        <select id="servings">
+          <option value="1">1 person</option>
+          <option value="2">2 people</option>
+          <option value="4" selected>4 people (family)</option>
+          <option value="6">6 people</option>
+        </select>
+      </div>
+    </div>
+    <div class="btn-wrapper">
+      <button class="btn btn-primary" id="generate-btn" onclick="generatePlan()">
+        🌿 Generate My Week
+      </button>
+    </div>
+    <div class="error-msg" id="error-msg"></div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Crafting your personalized meal plan…</p>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="results-header fade-in">
+      <h2>Your Week of Dinners</h2>
+      <button class="btn btn-outline" onclick="resetForm()">← Start Over</button>
+    </div>
+
+    <div class="days-grid" id="days-grid"></div>
+
+    <div class="grocery-card fade-in" id="grocery-section">
+      <h3>🛒 Grocery Gaps</h3>
+      <div class="grocery-list" id="grocery-list"></div>
+    </div>
+
+    <div class="tip-card fade-in" id="tip-card">
+      <div class="tip-icon">💡</div>
+      <p id="tip-text"></p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ── Point this at your running Flask server ───────────────────
+  const API_BASE = 'http://localhost:5000';
+
+  let currentPlan = null;
+
+  // ── Event delegation for dynamically generated card buttons ──
+  document.addEventListener('click', function (e) {
+    const toggleBtn = e.target.closest('.feedback-toggle');
+    if (toggleBtn) {
+      const boxId = toggleBtn.dataset.boxId;
+      document.getElementById(boxId).classList.toggle('open');
+      return;
+    }
+
+    const refineBtn = e.target.closest('.btn-refine');
+    if (refineBtn) {
+      const { day, cardId, boxId } = refineBtn.dataset;
+      refineMeal(day, cardId, boxId);
+    }
+  });
+
+  async function generatePlan() {
+    const ingredients = document.getElementById('ingredients').value.trim();
+    const dietary = document.getElementById('dietary').value.trim();
+    const servings = document.getElementById('servings').value;
+    const errorEl = document.getElementById('error-msg');
+
+    errorEl.classList.remove('active');
+    if (!ingredients) {
+      showError("Please enter at least a few pantry ingredients.");
+      return;
+    }
+
+    setLoading(true);
+    document.getElementById('results').classList.remove('active');
+
+    try {
+      const res = await fetch(`${API_BASE}/plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredients, dietary, servings })
+      });
+      const data = await safeJson(res);
+      if (!res.ok || data.error) throw new Error(data.error || 'Something went wrong.');
+      renderResults(data);
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Expose to inline onclick on the static Generate button
+  window.generatePlan = generatePlan;
+  window.resetForm = resetForm;
+
+  function renderResults(data, preserveScroll = false) {
+    currentPlan = data;
+    const grid = document.getElementById('days-grid');
+    grid.innerHTML = '';
+
+    (data.week || []).forEach(day => {
+      const diffClass = {
+        'Easy': 'badge-easy',
+        'Medium': 'badge-medium',
+        'Advanced': 'badge-advanced'
+      }[day.difficulty] || 'badge-easy';
+
+      const missingHtml = day.missing_ingredients?.length
+        ? `<p class="day-missing"><span>Need:</span> ${day.missing_ingredients.join(', ')}</p>`
+        : '';
+
+      const cardId = `card-${day.day.toLowerCase()}`;
+      const boxId  = `feedback-${day.day.toLowerCase()}`;
+      const fbId   = `fb-text-${day.day.toLowerCase()}`;
+
+      // Build card via DOM to avoid any quote-escaping issues
+      const card = document.createElement('div');
+      card.className = 'day-card';
+      card.id = cardId;
+      card.innerHTML = `
+        <p class="day-label">${day.day}</p>
+        <p class="day-meal">${day.meal}</p>
+        <p class="day-desc">${day.description}</p>
+        <div class="day-meta">
+          <span class="badge badge-time">⏱ ${day.prep_time}</span>
+          <span class="badge ${diffClass}">${day.difficulty}</span>
+        </div>
+        ${missingHtml}
+        <button class="feedback-toggle" data-box-id="${boxId}">✏️ Suggest a change</button>
+        <div class="feedback-box" id="${boxId}">
+          <textarea id="${fbId}" placeholder='e.g. "Too complex", "I hate fish", "Make it vegetarian"'></textarea>
+          <button class="btn-refine" data-day="${day.day}" data-card-id="${cardId}" data-box-id="${boxId}">↺ Swap this meal</button>
+        </div>`;
+      grid.appendChild(card);
+    });
+
+    const groceryList = document.getElementById('grocery-list');
+    const gaps = data.grocery_gaps || [];
+    if (gaps.length === 0) {
+      groceryList.innerHTML = '<p class="grocery-empty">You have everything you need — no shopping required! 🎉</p>';
+    } else {
+      groceryList.innerHTML = gaps.map(g => `<span class="grocery-item">${g}</span>`).join('');
+    }
+
+    document.getElementById('tip-text').textContent = data.tip || '';
+    document.getElementById('results').classList.add('active');
+    if (!preserveScroll) {
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  async function refineMeal(day, cardId, boxId) {
+    const fbId = `fb-text-${day.toLowerCase()}`;
+    const feedback = document.getElementById(fbId).value.trim();
+    if (!feedback) { alert("Please describe what you'd like changed."); return; }
+
+    const card = document.getElementById(cardId);
+    card.classList.add('refining');
+
+    const ingredients = document.getElementById('ingredients').value.trim();
+    const dietary = document.getElementById('dietary').value.trim();
+
+    try {
+      const res = await fetch(`${API_BASE}/refine`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: currentPlan, day, feedback, ingredients, dietary })
+      });
+      const data = await safeJson(res);
+      if (!res.ok || data.error) throw new Error(data.error || 'Something went wrong.');
+      renderResults(data, true);
+
+      // Highlight the updated card
+      setTimeout(() => {
+        const updatedCard = document.getElementById(cardId);
+        if (updatedCard) updatedCard.classList.add('revised');
+      }, 50);
+    } catch (err) {
+      alert('Error: ' + err.message);
+      card.classList.remove('refining');
+    }
+  }
+
+  function resetForm() {
+    document.getElementById('results').classList.remove('active');
+    document.getElementById('form-card').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function setLoading(on) {
+    document.getElementById('loading').classList.toggle('active', on);
+    document.getElementById('generate-btn').disabled = on;
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.classList.add('active');
+  }
+
+  // Safe JSON parser: reads body as text first so an HTML error page never
+  // crashes the stream with "Unexpected token '<'".
+  async function safeJson(res) {
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      // Server returned non-JSON (e.g. an HTML error page)
+      console.error('Non-JSON response:', text.slice(0, 300));
+      throw new Error(`Unexpected server response (status ${res.status}). Check your API key and server logs.`);
+    }
+  }
+</script>
+</body>
+</html>
